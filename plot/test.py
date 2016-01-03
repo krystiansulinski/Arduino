@@ -1,7 +1,7 @@
 __author__ = 'krystian'
 
 
-for i in range(1, 2):
+for i in range(1, 3):
     buffer_string = "11 22 33 44\n 55 66 77 88\n 99 00 11 22\n"
     if '\n' in buffer_string:
         buffer_string = [int(i) for i in buffer_string.split()]
