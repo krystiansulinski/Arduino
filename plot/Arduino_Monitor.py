@@ -3,12 +3,10 @@ Listen to serial, return most recent numeric values
 Lots of help from here:
 http://stackoverflow.com/questions/1093598/pyserial-how-to-read-last-line-sent-from-serial-device
 """
-from threading import Thread
 import time
 import serial
 
 last_received = ''
-
 
 def receiving(ser):
     global last_received
