@@ -18,7 +18,9 @@ def receiving(ser):
     while True:
         buffer = buffer + ser.read(ser.inWaiting())
         if '\n' in buffer:
-            lines = buffer.split('\n') # Guaranteed to have at least 2 entries
+            #lines = buffer.split('\n') # Guaranteed to have at least 2 entries
+            lines = [int(i) for i in buffer.split()]
+            lines = [str(i) for i in buffer.split()]
             last_received = lines[-2]
             #If the Arduino sends lots of empty lines, you'll lose the
             #last filled line, so you could make the above statement conditional
@@ -30,15 +32,14 @@ class SerialData(object):
     def __init__(self, init=50):
         try:
             self.ser = ser = serial.Serial(
-                port='/dev/ttyACM0',
+                port='com6',
                 baudrate=9600,
                 bytesize=serial.EIGHTBITS,
                 parity=serial.PARITY_NONE,
                 stopbits=serial.STOPBITS_ONE,
                 timeout=0.1,
                 xonxoff=0,
-                rtscts=0,
-                interCharTimeout=None
+                rtscts=0
             )
         except serial.serialutil.SerialException:
             #no serial connection
