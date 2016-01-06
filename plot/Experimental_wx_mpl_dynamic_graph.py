@@ -207,6 +207,9 @@ class GraphFrame(wx.Frame):
         # sliding window effect. therefore, xmin is assigned after
         # xmax.
         #
+
+        print "self.data={}".format(self.data)
+
         if self.xmax_control.is_auto():
             xmax = len(self.data) if len(self.data) > 50 else 50
         else:
@@ -293,7 +296,7 @@ class GraphFrame(wx.Frame):
         # (to respond to scale modifications, grid change, etc.)
         #
         if not self.paused:
-            self.data.append(self.datagen.get())
+            self.data.append(self.datagen.get(0))
 
         self.draw_plot()
 
