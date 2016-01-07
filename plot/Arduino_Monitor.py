@@ -20,7 +20,7 @@ def receiving(ser):
         if '\n' in buffer:
             #lines = buffer.split('\n') # Guaranteed to have at least 2 entries
             lines = [int(i) for i in buffer.split()]
-            lines = [str(i) for i in buffer.split()]
+            lines = [str(i) for i in lines]
             last_received = lines[-2]
             #If the Arduino sends lots of empty lines, you'll lose the
             #last filled line, so you could make the above statement conditional
