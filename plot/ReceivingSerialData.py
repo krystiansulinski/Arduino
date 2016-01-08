@@ -1,3 +1,26 @@
+# This module connects with Arduino through a serial port and generates data to draw four real-time plots.
+# It works with uploaded through Arduino IDE (open-source Arduino Software) AnalogReadSerial.
+# (In this IDE go to: File -> Examples -> 01. Basics -> AnalogReadSerial).
+# Modify this file to print four values with a space in between and end with a new line.
+# For example:
+#       Serial.print(sensorValue0);
+#       Serial.print(" ");
+#       Serial.print(sensorValue1);
+#       Serial.print(" ");
+#       Serial.print(sensorValue2);
+#       Serial.print(" ");
+#       Serial.println(sensorValue3);
+#
+# Before running please check the setting for a serial port - COM1/COM2... and edit it if necessary.
+# (By default is set on COM6)
+#
+# This module can run independently from DrawPlots.py. It just prints the read data to the console.
+#
+# author: Krystian Sulinski
+# license: GNU GENERAL PUBLIC LICENSE
+# last modified: 08.01.2016
+
+
 import serial
 import time
 from threading import Thread
@@ -14,7 +37,6 @@ def receiving(serial_port):
         if '\n' in buffer_string:
             buffer_string = [int(i) for i in buffer_string.split()]
             received = buffer_string[0:4]
-            # return received
 
 
 class SerialData(object):
@@ -22,7 +44,7 @@ class SerialData(object):
         self.start_time = time.time()
         self.buffer = ''
         try:
-            self.serial = serial.Serial(port='com6', baudrate=9600)     # opens serial port
+            self.serial = serial.Serial(port='com6', baudrate=9600)     # opens serial port, check this port
         except serial.serialutil.SerialException:
             self.serial = None
             print "No serial connection"
