@@ -8,19 +8,19 @@ Python 2.7
 # https://www.python.org/downloads/    
 
 pyserial             
-# run from the commnad line: pip install pyserial    
+run from the commnad line: pip install pyserial    
   
 wx                   
-# pip install wx    
+pip install wx    
   
 matplotlib         
-# pip install matplotlib    
+pip install matplotlib    
 
 numpy               
-# pip install numpy   
+pip install numpy   
 
 pylab               
-# pip install pylab    
+pip install pylab    
   
 Don't you have pip? Follow https://pip.pypa.io/en/latest/installing/  
 
