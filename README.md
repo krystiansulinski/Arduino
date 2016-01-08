@@ -11,7 +11,7 @@ matplotlib    # pip install matplotlib
 numpy         # pip install numoy
 pylab         # pip install pylab
 
-# Don't you have pip? Follow https://pip.pypa.io/en/latest/installing/
+Don't you have pip? Follow https://pip.pypa.io/en/latest/installing/
 
 Run from the command line:
 python DrawPlots.py
