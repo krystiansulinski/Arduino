@@ -1,10 +1,25 @@
+# This module draws a dynamic matplotlib plot in a wxPython application.
+# It allows "live" plotting as well as manual zooming to specific
+# regions.
+#
+# Press Enter in the 'Manual' text box to make a new value
+# affect the plot.
+#
+# What you can do easly? Change the color of the plots, adjust min and max values for X and Y axis,
+# change the default values for Manual version, change the refreshion interval.
+#
+# author: Eli Bendersky (eliben@gmail.com), edition by Krystian Sulinski
+# license: GNU GENERAL PUBLIC LICENSE
+# last modified: 08.01.2016
+
+
 import pylab
 import os
 import wx
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import \
     FigureCanvasWxAgg as FigCanvas
-from Experimental_Arduino_Monitor import SerialData
+from ReceivingSerialData import SerialData
 import numpy as np
 
 REFRESH_INTERVAL_MS = 90
@@ -26,6 +41,8 @@ class BoundControlBox(wx.Panel):
 
         self.radio_auto = wx.RadioButton(self, -1, label="Auto", style=wx.RB_GROUP)
         self.radio_manual = wx.RadioButton(self, -1, label="Manual")
+
+        # it sets the manual button as clicked. if you want to switch it on the auto button st on False
         self.radio_manual.SetValue(True)
         self.manual_text = wx.TextCtrl(self, -1, size=(35, -1), value=str(initval), style=wx.TE_PROCESS_ENTER)
 
@@ -66,6 +83,7 @@ class GraphFrame(wx.Frame):
         self.serial_data = SerialData()
 
         self.plot = [-1, -1, -1, -1]
+        # it reads the data from the ReceivingSerialData.py to a four-elements array
         for i in range(len(self.plot)):
             self.plot[i] = [self.serial_data.next(0)]
 
@@ -96,6 +114,7 @@ class GraphFrame(wx.Frame):
         self.init_plot()
         self.canvas = FigCanvas(self.panel, -1, self.fig)
 
+        # it sets min i max for X and Y axis.
         self.xmin_control = BoundControlBox(self.panel, -1, "X min", 0)
         self.xmax_control = BoundControlBox(self.panel, -1, "X max", (20*60*60)/2)  # min * sec * ms = 10min
         self.ymin_control = BoundControlBox(self.panel, -1, "Y min", 0)
@@ -153,7 +172,9 @@ class GraphFrame(wx.Frame):
         # to the plotted line series
 
         self.plot_data = [0, 0, 0, 0]
-        # Looking for other colours? - http://stackoverflow.com/questions/22408237/named-colors-in-matplotlib
+
+        # it determines the look of the plots.
+        # looking for other colours? - http://stackoverflow.com/questions/22408237/named-colors-in-matplotlib
         self.plot_data[0] = self.axes.plot(self.plot[0], linewidth=2, color="darkorange")[0]
         self.plot_data[1] = self.axes.plot(self.plot[1], linewidth=2, color="forestgreen")[0]
         self.plot_data[2] = self.axes.plot(self.plot[2], linewidth=2, color="mediumvioletred")[0]
@@ -176,7 +197,7 @@ class GraphFrame(wx.Frame):
         else:
             xmax = int(self.xmax_control.manual_value())
         if self.xmin_control.is_auto():
-            xmin = xmax - 500
+            xmin = 0#xmax - 500
         else:
             xmin = int(self.xmin_control.manual_value())
 
@@ -205,6 +226,7 @@ class GraphFrame(wx.Frame):
         else:
             ymax = int(self.ymax_control.manual_value())
 
+        # added to clarification
         ymax += 100
 
         self.axes.set_xbound(lower=xmin, upper=xmax)
