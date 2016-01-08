@@ -5,7 +5,7 @@ Arduino IDE should be closed, otherwsie it will block this program.
 
 Install the following to run it:
 Python 2.7         
-# https://www.python.org/downloads/    
+https://www.python.org/downloads/      
 
 pyserial             
 run from the commnad line: pip install pyserial    
