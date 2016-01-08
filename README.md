@@ -11,18 +11,18 @@ pyserial
 run from the commnad line: pip install pyserial    
   
 wx                   
-pip install wx    
+run from the commnad line: pip install wx    
   
 matplotlib         
-pip install matplotlib    
+run from the commnad line: pip install matplotlib    
 
 numpy               
-pip install numpy   
+run from the commnad line: pip install numpy   
 
 pylab               
-pip install pylab    
+run from the commnad line: pip install pylab    
   
 Don't you have pip? Follow https://pip.pypa.io/en/latest/installing/  
 
-Run from the command line:  
+To run this program run from the command line:  
 python DrawPlots.py  
