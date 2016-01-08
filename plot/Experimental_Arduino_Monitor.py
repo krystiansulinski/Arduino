@@ -1,51 +1,13 @@
-"""
-Source:
-"""
-
-"""
-GP:
-Changed datasource, title, and refresh interval to use
-as a poor man's Arduino oscilliscope.
-
-This demo demonstrates how to draw a dynamic mpl (matplotlib)
-plot in a wxPython application.
-
-It allows "live" plotting as well as manual zooming to specific
-regions.
-
-Both X and Y axes allow "auto" or "manual" settings. For Y, auto
-mode sets the scaling of the graph to see all the data points.
-For X, auto mode makes the graph "follow" the data. Set it X min
-to manual 0 to always see the whole data from the beginning.
-
-Note: press Enter in the 'manual' text box to make a new value
-affect the plot.
-
-Eli Bendersky (eliben@gmail.com)
-License: this code is in the public domain
-Last modified: 31.07.2008
-"""
+import pylab
 import os
-import pprint
-import random
-import sys
 import wx
-
-REFRESH_INTERVAL_MS = 90
-
-# The recommended way to use wx with mpl is with the WXAgg
-# backend.
-#
-import matplotlib
-matplotlib.use('WXAgg')
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import \
-    FigureCanvasWxAgg as FigCanvas, \
-    NavigationToolbar2WxAgg as NavigationToolbar
-import numpy as np
-import pylab
-#Data comes from here
+    FigureCanvasWxAgg as FigCanvas
 from Experimental_Arduino_Monitor import SerialData
+import numpy as np
+
+REFRESH_INTERVAL_MS = 90
 
 
 class BoundControlBox(wx.Panel):
@@ -53,22 +15,19 @@ class BoundControlBox(wx.Panel):
         box. Allows to switch between an automatic mode and a
         manual mode with an associated value.
     """
-    def __init__(self, parent, ID, label, initval):
-        wx.Panel.__init__(self, parent, ID)
+
+    def __init__(self, parent, id, label, initval):
+        wx.Panel.__init__(self, parent, id)
 
         self.value = initval
 
         box = wx.StaticBox(self, -1, label)
         sizer = wx.StaticBoxSizer(box, wx.VERTICAL)
 
-        self.radio_auto = wx.RadioButton(self, -1,
-            label="Auto", style=wx.RB_GROUP)
-        self.radio_manual = wx.RadioButton(self, -1,
-            label="Manual")
-        self.manual_text = wx.TextCtrl(self, -1,
-            size=(35,-1),
-            value=str(initval),
-            style=wx.TE_PROCESS_ENTER)
+        self.radio_auto = wx.RadioButton(self, -1, label="Auto", style=wx.RB_GROUP)
+        self.radio_manual = wx.RadioButton(self, -1, label="Manual")
+        self.radio_manual.SetValue(True)
+        self.manual_text = wx.TextCtrl(self, -1, size=(35, -1), value=str(initval), style=wx.TE_PROCESS_ENTER)
 
         self.Bind(wx.EVT_UPDATE_UI, self.on_update_manual_text, self.manual_text)
         self.Bind(wx.EVT_TEXT_ENTER, self.on_text_enter, self.manual_text)
@@ -105,9 +64,15 @@ class GraphFrame(wx.Frame):
         wx.Frame.__init__(self, None, -1, self.title)
 
         self.serial_data = SerialData()
-        self.data = [self.serial_data.get_next(0)]
-        self.paused = False
 
+        self.plot = [-1, -1, -1, -1]
+        self.plot[0] = [self.serial_data.next(0)]
+        self.plot[1] = [self.serial_data.next(1)]
+        self.plot[2] = [self.serial_data.next(2)]
+        self.plot[3] = [self.serial_data.next(3)]
+
+        self.paused = False
+        self.menu_bar = wx.MenuBar()
         self.create_menu()
         self.create_status_bar()
         self.create_main_panel()
@@ -117,8 +82,6 @@ class GraphFrame(wx.Frame):
         self.redraw_timer.Start(REFRESH_INTERVAL_MS)
 
     def create_menu(self):
-        self.menubar = wx.MenuBar()
-
         menu_file = wx.Menu()
         m_expt = menu_file.Append(-1, "&Save plot\tCtrl-S", "Save plot to file")
         self.Bind(wx.EVT_MENU, self.on_save_plot, m_expt)
@@ -126,8 +89,8 @@ class GraphFrame(wx.Frame):
         m_exit = menu_file.Append(-1, "E&xit\tCtrl-X", "Exit")
         self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
 
-        self.menubar.Append(menu_file, "&File")
-        self.SetMenuBar(self.menubar)
+        self.menu_bar.Append(menu_file, "&File")
+        self.SetMenuBar(self.menu_bar)
 
     def create_main_panel(self):
         self.panel = wx.Panel(self)
@@ -136,23 +99,19 @@ class GraphFrame(wx.Frame):
         self.canvas = FigCanvas(self.panel, -1, self.fig)
 
         self.xmin_control = BoundControlBox(self.panel, -1, "X min", 0)
-        self.xmax_control = BoundControlBox(self.panel, -1, "X max", 50)
+        self.xmax_control = BoundControlBox(self.panel, -1, "X max", 3600)
         self.ymin_control = BoundControlBox(self.panel, -1, "Y min", 0)
-        self.ymax_control = BoundControlBox(self.panel, -1, "Y max", 100)
+        self.ymax_control = BoundControlBox(self.panel, -1, "Y max", 1000)
 
         self.pause_button = wx.Button(self.panel, -1, "Pause")
         self.Bind(wx.EVT_BUTTON, self.on_pause_button, self.pause_button)
         self.Bind(wx.EVT_UPDATE_UI, self.on_update_pause_button, self.pause_button)
 
-        self.cb_grid = wx.CheckBox(self.panel, -1,
-            "Show Grid",
-            style=wx.ALIGN_RIGHT)
+        self.cb_grid = wx.CheckBox(self.panel, -1, "Show Grid", style=wx.ALIGN_RIGHT)
         self.Bind(wx.EVT_CHECKBOX, self.on_cb_grid, self.cb_grid)
         self.cb_grid.SetValue(True)
 
-        self.cb_xlab = wx.CheckBox(self.panel, -1,
-            "Show X labels",
-            style=wx.ALIGN_RIGHT)
+        self.cb_xlab = wx.CheckBox(self.panel, -1, "Show X labels", style=wx.ALIGN_RIGHT)
         self.Bind(wx.EVT_CHECKBOX, self.on_cb_xlab, self.cb_xlab)
         self.cb_xlab.SetValue(True)
 
@@ -183,10 +142,10 @@ class GraphFrame(wx.Frame):
 
     def init_plot(self):
         self.dpi = 100
-        self.fig = Figure((3.0, 3.0), dpi=self.dpi)
+        self.fig = Figure((12.0, 5.0), dpi=self.dpi)
 
         self.axes = self.fig.add_subplot(111)
-        self.axes.set_axis_bgcolor('black')
+        self.axes.set_axis_bgcolor('white')
         self.axes.set_title('Arduino Serial Data', size=12)
 
         pylab.setp(self.axes.get_xticklabels(), fontsize=8)
@@ -194,12 +153,12 @@ class GraphFrame(wx.Frame):
 
         # plot the data as a line series, and save the reference
         # to the plotted line series
-        #
-        self.plot_data = self.axes.plot(
-            self.data,
-            linewidth=1,
-            color=(1, 1, 0),
-            )[0]
+
+        self.plot_data = [0, 0, 0, 0]
+        self.plot_data[0] = self.axes.plot(self.plot[0], linewidth=2, color="darkorange")[0]
+        self.plot_data[1] = self.axes.plot(self.plot[1], linewidth=2, color="forestgreen")[0]
+        self.plot_data[2] = self.axes.plot(self.plot[2], linewidth=2, color="mediumvioletred")[0]
+        self.plot_data[3] = self.axes.plot(self.plot[3], linewidth=2, color="royalblue")[0]
 
     def draw_plot(self):
         """ Redraws the plot
@@ -207,14 +166,21 @@ class GraphFrame(wx.Frame):
         # when xmin is on auto, it "follows" xmax to produce a
         # sliding window effect. therefore, xmin is assigned after
         # xmax.
-        #
+
         if self.xmax_control.is_auto():
-            xmax = len(self.data) if len(self.data) > 50 else 50
+            for i in range(len(self.plot) - 1):
+                if len(self.plot[i]) > len(self.plot[i+1]):
+                    xmax = len(self.plot[i+1])
+                else:
+                    xmax = len(self.plot[0])
+
+            # xmax = len(self.plot[0]) if len(self.plot[0]) > 50 else 50
+            # xmax = len(self.plot[1]) if len(self.plot[1]) > len(self.plot[0]) else len(self.plot[0])
+            # xmax = len(self.plot[2]) if len(self.plot[2]) > len(self.plot[1]) else len(self.plot[1])
         else:
             xmax = int(self.xmax_control.manual_value())
-
         if self.xmin_control.is_auto():
-            xmin = xmax - 50
+            xmin = xmax - 500
         else:
             xmin = int(self.xmin_control.manual_value())
 
@@ -224,16 +190,26 @@ class GraphFrame(wx.Frame):
         # note that it's easy to change this scheme to the
         # minimal/maximal value in the current display, and not
         # the whole data set.
-        #
+
         if self.ymin_control.is_auto():
-            ymin = round(min(self.data), 0) - 1
+            for i in range(len(self.plot) - 1):
+                if round(min(self.plot[i]), 0) - 1 < round(min(self.plot[i+1]), 0) - 1:
+                    ymin = round(min(self.plot[i]), 0) - 1
+                else:
+                    ymin = round(min(self.plot[i+1]), 0) - 1
         else:
             ymin = int(self.ymin_control.manual_value())
 
         if self.ymax_control.is_auto():
-            ymax = round(max(self.data), 0) + 1
+            for i in range(len(self.plot) - 1):
+                if round(max(self.plot[i]), 0) - 1 > round(max(self.plot[i+1]), 0) - 1:
+                    ymax = round(max(self.plot[i]), 0) - 1
+                else:
+                    ymax = round(max(self.plot[i+1]), 0) - 1
         else:
             ymax = int(self.ymax_control.manual_value())
+
+        ymax += 100
 
         self.axes.set_xbound(lower=xmin, upper=xmax)
         self.axes.set_ybound(lower=ymin, upper=ymax)
@@ -242,7 +218,7 @@ class GraphFrame(wx.Frame):
         # given even if b is set to False.
         # so just passing the flag into the first statement won't
         # work.
-        #
+
         if self.cb_grid.IsChecked():
             self.axes.grid(True, color='gray')
         else:
@@ -251,12 +227,20 @@ class GraphFrame(wx.Frame):
         # Using setp here is convenient, because get_xticklabels
         # returns a list over which one needs to explicitly
         # iterate, and setp already handles this.
-        #
-        pylab.setp(self.axes.get_xticklabels(),
-            visible=self.cb_xlab.IsChecked())
 
-        self.plot_data.set_xdata(np.arange(len(self.data)))
-        self.plot_data.set_ydata(np.array(self.data))
+        pylab.setp(self.axes.get_xticklabels(), visible=self.cb_xlab.IsChecked())
+
+        self.plot_data[0].set_xdata(np.arange(len(self.plot[0])))
+        self.plot_data[0].set_ydata(np.array(self.plot[0]))
+
+        self.plot_data[1].set_xdata(np.arange(len(self.plot[1])))
+        self.plot_data[1].set_ydata(np.array(self.plot[1]))
+
+        self.plot_data[2].set_xdata(np.arange(len(self.plot[2])))
+        self.plot_data[2].set_ydata(np.array(self.plot[2]))
+
+        self.plot_data[3].set_xdata(np.arange(len(self.plot[3])))
+        self.plot_data[3].set_ydata(np.array(self.plot[3]))
 
         self.canvas.draw()
 
@@ -292,10 +276,12 @@ class GraphFrame(wx.Frame):
     def on_redraw_timer(self, event):
         # if paused do not add data, but still redraw the plot
         # (to respond to scale modifications, grid change, etc.)
-        #
-        if not self.paused:
-            self.data.append(self.serial_data.get_next(0))
 
+        if not self.paused:
+            self.plot[0].append(self.serial_data.next(0))
+            self.plot[1].append(self.serial_data.next(1))
+            self.plot[2].append(self.serial_data.next(2))
+            self.plot[3].append(self.serial_data.next(3))
         self.draw_plot()
 
     def on_exit(self, event):
@@ -304,10 +290,7 @@ class GraphFrame(wx.Frame):
     def flash_status_message(self, msg, flash_len_ms=1500):
         self.statusbar.SetStatusText(msg)
         self.timeroff = wx.Timer(self)
-        self.Bind(
-            wx.EVT_TIMER,
-            self.on_flash_status_off,
-            self.timeroff)
+        self.Bind(wx.EVT_TIMER, self.on_flash_status_off, self.timeroff)
         self.timeroff.Start(flash_len_ms, oneShot=True)
 
     def on_flash_status_off(self, event):
@@ -315,7 +298,7 @@ class GraphFrame(wx.Frame):
 
 
 if __name__ == '__main__':
-    app = wx.PySimpleApp()
+    app = wx.App(False)
     app.frame = GraphFrame()
     app.frame.Show()
     app.MainLoop()
