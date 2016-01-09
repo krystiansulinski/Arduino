@@ -1,4 +1,4 @@
-It listenes to the serial of Arduino microcontroller and draws dynamic matplotlib plots in a wxPython application.  
+Listens to the serial of Arduino microcontroller and draws dynamic matplotlib plots in a wxPython application.  
 
 It's been set up for COM6. You can change it if needed.  
 Arduino IDE should be closed, otherwsie it will block this program.  
@@ -24,5 +24,5 @@ run from the commnad line: pip install pylab
   
 Don't you have pip? Follow https://pip.pypa.io/en/latest/installing/  
 
-To run this program run from the command line:  
+To run this program from the command line write this:
 python DrawPlots.py  
